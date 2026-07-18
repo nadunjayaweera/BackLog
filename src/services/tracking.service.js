@@ -188,7 +188,204 @@ const prepareCanvasTrackingData = ({ requestData, ipAddress, userAgent }) => {
   };
 };
 
+// =====================================================
+// WEBGL FINGERPRINT TRACKING
+// =====================================================
+
+const cleanNumberArray = (value, maximumLength = 20) => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .slice(0, maximumLength)
+    .map(cleanNumber)
+    .filter((item) => item !== null);
+};
+
+const cleanUnknownParameter = (value) => {
+  if (typeof value === "string") {
+    return cleanString(value);
+  }
+
+  if (typeof value === "number") {
+    return cleanNumber(value);
+  }
+
+  if (typeof value === "boolean") {
+    return cleanBoolean(value);
+  }
+
+  if (Array.isArray(value)) {
+    return cleanNumberArray(value);
+  }
+
+  return null;
+};
+
+const cleanPrecisionInformation = (value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  return {
+    rangeMin: cleanNumber(value.rangeMin),
+    rangeMax: cleanNumber(value.rangeMax),
+    precision: cleanNumber(value.precision),
+  };
+};
+
+const prepareWebglTrackingData = ({ requestData, ipAddress, userAgent }) => {
+  const fingerprintHash = cleanSha256Hash(requestData?.fingerprintHash);
+
+  const renderingHash = cleanSha256Hash(requestData?.renderingHash);
+
+  if (!fingerprintHash || !renderingHash) {
+    const error = new Error(
+      "Valid WebGL fingerprint and rendering hashes are required.",
+    );
+
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const renderer = requestData?.renderer || {};
+
+  const versionInformation = requestData?.versionInformation || {};
+
+  const contextAttributes = requestData?.contextAttributes || {};
+
+  const limits = requestData?.limits || {};
+
+  const shaderPrecision = requestData?.shaderPrecision || {};
+
+  const canvas = requestData?.canvas || {};
+
+  const extensions = Array.isArray(requestData?.extensions)
+    ? requestData.extensions
+        .slice(0, 200)
+        .map(cleanString)
+        .filter(Boolean)
+        .sort()
+    : [];
+
+  return {
+    trackingType: "WEBGL_FINGERPRINT",
+
+    request: {
+      ipAddress: cleanString(ipAddress),
+      userAgent: cleanString(userAgent),
+    },
+
+    fingerprint: {
+      fingerprintHash,
+      renderingHash,
+    },
+
+    renderer: {
+      standardVendor: cleanString(renderer.standardVendor),
+
+      standardRenderer: cleanString(renderer.standardRenderer),
+
+      unmaskedVendor: cleanString(renderer.unmaskedVendor),
+
+      unmaskedRenderer: cleanString(renderer.unmaskedRenderer),
+
+      debugRendererExtensionAvailable: cleanBoolean(
+        renderer.debugRendererExtensionAvailable,
+      ),
+    },
+
+    versionInformation: {
+      contextType: cleanString(versionInformation.contextType),
+
+      version: cleanString(versionInformation.version),
+
+      shadingLanguageVersion: cleanString(
+        versionInformation.shadingLanguageVersion,
+      ),
+    },
+
+    contextAttributes: {
+      alpha: cleanBoolean(contextAttributes.alpha),
+
+      antialias: cleanBoolean(contextAttributes.antialias),
+
+      depth: cleanBoolean(contextAttributes.depth),
+
+      failIfMajorPerformanceCaveat: cleanBoolean(
+        contextAttributes.failIfMajorPerformanceCaveat,
+      ),
+
+      powerPreference: cleanString(contextAttributes.powerPreference),
+
+      premultipliedAlpha: cleanBoolean(contextAttributes.premultipliedAlpha),
+
+      preserveDrawingBuffer: cleanBoolean(
+        contextAttributes.preserveDrawingBuffer,
+      ),
+
+      stencil: cleanBoolean(contextAttributes.stencil),
+
+      desynchronized: cleanBoolean(contextAttributes.desynchronized),
+    },
+
+    limits: Object.fromEntries(
+      Object.entries(limits)
+        .slice(0, 50)
+        .map(([key, value]) => [cleanString(key), cleanUnknownParameter(value)])
+        .filter(([key]) => Boolean(key)),
+    ),
+
+    shaderPrecision: {
+      vertexHighFloat: cleanPrecisionInformation(
+        shaderPrecision.vertexHighFloat,
+      ),
+
+      vertexMediumFloat: cleanPrecisionInformation(
+        shaderPrecision.vertexMediumFloat,
+      ),
+
+      vertexLowFloat: cleanPrecisionInformation(shaderPrecision.vertexLowFloat),
+
+      fragmentHighFloat: cleanPrecisionInformation(
+        shaderPrecision.fragmentHighFloat,
+      ),
+
+      fragmentMediumFloat: cleanPrecisionInformation(
+        shaderPrecision.fragmentMediumFloat,
+      ),
+
+      fragmentLowFloat: cleanPrecisionInformation(
+        shaderPrecision.fragmentLowFloat,
+      ),
+
+      vertexHighInt: cleanPrecisionInformation(shaderPrecision.vertexHighInt),
+
+      fragmentHighInt: cleanPrecisionInformation(
+        shaderPrecision.fragmentHighInt,
+      ),
+    },
+
+    extensions,
+
+    canvas: {
+      width: cleanNumber(canvas.width),
+      height: cleanNumber(canvas.height),
+
+      drawingBufferWidth: cleanNumber(canvas.drawingBufferWidth),
+
+      drawingBufferHeight: cleanNumber(canvas.drawingBufferHeight),
+    },
+
+    clientCollectedAt: cleanString(requestData?.collectedAt),
+
+    serverReceivedAt: new Date().toISOString(),
+  };
+};
+
 module.exports = {
   prepareBrowserTrackingData,
   prepareCanvasTrackingData,
+  prepareWebglTrackingData,
 };

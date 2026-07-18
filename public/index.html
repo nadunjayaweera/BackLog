@@ -78,7 +78,24 @@
       <pre id="canvasResult">No canvas fingerprint generated yet.</pre>
     </section>
 
+    <section>
+      <h2>WebGL and GPU Fingerprint</h2>
+
+      <p>
+        This test reads graphics capabilities and generates a hash from a
+        locally rendered WebGL scene.
+      </p>
+
+      <button id="webglButton" type="button">Generate WebGL Fingerprint</button>
+
+      <pre id="webglResult">
+No WebGL fingerprint generated yet.
+  </pre
+      >
+    </section>
+
     <script src="/js/browserCollector.js"></script>
     <script src="/js/canvasCollector.js"></script>
+    <script src="/js/webglCollector.js"></script>
   </body>
 </html>
