@@ -54,8 +54,9 @@
 
     <div class="notice">
       This page collects browser characteristics for security and
-      device-recognition testing. Canvas fingerprinting should only be used
-      after informing the user.
+      device-recognition testing. It does not store any personal information,
+      and all data is processed locally in your browser. You can view the
+      collected information below.
     </div>
 
     <section>
@@ -89,7 +90,23 @@
       <button id="webglButton" type="button">Generate WebGL Fingerprint</button>
 
       <pre id="webglResult">
-No WebGL fingerprint generated yet.
+        No WebGL fingerprint generated yet.
+  </pre
+      >
+    </section>
+
+    <section>
+      <h2>Audio Fingerprint</h2>
+
+      <p>
+        This test generates a silent offline audio signal and hashes the
+        rendered sample data. It does not use your microphone or play audio.
+      </p>
+
+      <button id="audioButton" type="button">Generate Audio Fingerprint</button>
+
+      <pre id="audioResult">
+        No audio fingerprint generated yet.
   </pre
       >
     </section>
@@ -97,5 +114,6 @@ No WebGL fingerprint generated yet.
     <script src="/js/browserCollector.js"></script>
     <script src="/js/canvasCollector.js"></script>
     <script src="/js/webglCollector.js"></script>
+    <script src="/js/audioCollector.js"></script>
   </body>
 </html>

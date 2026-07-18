@@ -384,8 +384,170 @@ const prepareWebglTrackingData = ({ requestData, ipAddress, userAgent }) => {
   };
 };
 
+// =====================================================
+// AUDIO FINGERPRINT TRACKING
+// =====================================================
+
+const cleanObject = (value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  return value;
+};
+
+const prepareAudioTrackingData = ({ requestData, ipAddress, userAgent }) => {
+  const fingerprintHash = cleanSha256Hash(requestData?.fingerprintHash);
+
+  const renderingHash = cleanSha256Hash(requestData?.renderingHash);
+
+  if (!fingerprintHash || !renderingHash) {
+    const error = new Error(
+      "Valid audio fingerprint and rendering hashes are required.",
+    );
+
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const audioBuffer = cleanObject(requestData?.audioBuffer);
+
+  const sampleRange = cleanObject(requestData?.sampleRange);
+
+  const statistics = cleanObject(requestData?.statistics);
+
+  const capabilities = cleanObject(requestData?.capabilities);
+
+  const processingConfiguration = cleanObject(
+    requestData?.processingConfiguration,
+  );
+
+  const oscillator = cleanObject(processingConfiguration.oscillator);
+
+  const gain = cleanObject(processingConfiguration.gain);
+
+  const filter = cleanObject(processingConfiguration.filter);
+
+  const compressor = cleanObject(processingConfiguration.compressor);
+
+  return {
+    trackingType: "AUDIO_FINGERPRINT",
+
+    request: {
+      ipAddress: cleanString(ipAddress),
+      userAgent: cleanString(userAgent),
+    },
+
+    fingerprint: {
+      fingerprintHash,
+      renderingHash,
+    },
+
+    audioBuffer: {
+      duration: cleanNumber(audioBuffer.duration),
+
+      length: cleanNumber(audioBuffer.length),
+
+      numberOfChannels: cleanNumber(audioBuffer.numberOfChannels),
+
+      sampleRate: cleanNumber(audioBuffer.sampleRate),
+    },
+
+    sampleRange: {
+      start: cleanNumber(sampleRange.start),
+
+      end: cleanNumber(sampleRange.end),
+
+      sampleCount: cleanNumber(sampleRange.sampleCount),
+    },
+
+    statistics: {
+      sampleCount: cleanNumber(statistics.sampleCount),
+
+      minimum: cleanNumber(statistics.minimum),
+
+      maximum: cleanNumber(statistics.maximum),
+
+      mean: cleanNumber(statistics.mean),
+
+      absoluteMean: cleanNumber(statistics.absoluteMean),
+
+      rootMeanSquare: cleanNumber(statistics.rootMeanSquare),
+
+      zeroCrossings: cleanNumber(statistics.zeroCrossings),
+    },
+
+    capabilities: {
+      supported: cleanBoolean(capabilities.supported),
+
+      sampleRate: cleanNumber(capabilities.sampleRate),
+
+      baseLatency: cleanNumber(capabilities.baseLatency),
+
+      outputLatency: cleanNumber(capabilities.outputLatency),
+
+      state: cleanString(capabilities.state),
+
+      destinationMaxChannelCount: cleanNumber(
+        capabilities.destinationMaxChannelCount,
+      ),
+
+      error: cleanString(capabilities.error),
+    },
+
+    processingConfiguration: {
+      sampleRate: cleanNumber(processingConfiguration.sampleRate),
+
+      durationSeconds: cleanNumber(processingConfiguration.durationSeconds),
+
+      channelCount: cleanNumber(processingConfiguration.channelCount),
+
+      oscillator: {
+        type: cleanString(oscillator.type),
+
+        frequency: cleanNumber(oscillator.frequency),
+      },
+
+      gain: {
+        value: cleanNumber(gain.value),
+      },
+
+      filter: {
+        type: cleanString(filter.type),
+
+        frequency: cleanNumber(filter.frequency),
+
+        q: cleanNumber(filter.q),
+      },
+
+      compressor: {
+        threshold: cleanNumber(compressor.threshold),
+
+        knee: cleanNumber(compressor.knee),
+
+        ratio: cleanNumber(compressor.ratio),
+
+        attack: cleanNumber(compressor.attack),
+
+        release: cleanNumber(compressor.release),
+
+        reduction: cleanNumber(compressor.reduction),
+      },
+    },
+
+    microphoneUsed: cleanBoolean(requestData?.microphoneUsed),
+
+    audibleOutputUsed: cleanBoolean(requestData?.audibleOutputUsed),
+
+    clientCollectedAt: cleanString(requestData?.collectedAt),
+
+    serverReceivedAt: new Date().toISOString(),
+  };
+};
+
 module.exports = {
   prepareBrowserTrackingData,
   prepareCanvasTrackingData,
   prepareWebglTrackingData,
+  prepareAudioTrackingData,
 };
