@@ -22,11 +22,9 @@ The user can click one button to run all collection methods.
 
 The page displays:
 
-- Collection progress
 - Individual method results
 - Success or failed status
 - Browser and device summary
-- Combined JSON result
 
 ## Technologies
 
@@ -95,23 +93,134 @@ project/
 
 ## How It Works
 
-When the user clicks **Run Complete Browser Analysis**, the frontend runs each method one by one.
+The application provides a separate button for each browser identification method.
+
+The user can run the following tests individually:
+
+- Browser properties collection
+- Canvas fingerprint generation
+- WebGL and GPU fingerprint generation
+- Audio fingerprint generation
+- Font fingerprint generation
+
+When a user clicks a button, the related JavaScript collector gathers the information and sends it to its Express backend endpoint.
+
+The backend then:
+
+- Receives the collected data
+- Validates and normalizes the values
+- Adds request information such as the IP address and User-Agent
+- Prints the result in the backend console
+- Returns a response to the frontend
+
+Each result is displayed under its related section on the page.
 
 ```text
-Get client IP
-      ↓
-Collect browser properties
-      ↓
-Generate canvas fingerprint
-      ↓
-Generate WebGL fingerprint
-      ↓
-Generate audio fingerprint
-      ↓
-Generate font fingerprint
-      ↓
-Display summary
+User clicks a fingerprint button
+              │
+              ▼
+Frontend collects browser information
+              │
+              ▼
+Frontend sends the result to Express
+              │
+              ▼
+Backend validates and logs the result
+              │
+              ▼
+Frontend displays the returned result
 ```
+
+## Available Tests
+
+### Browser Properties
+
+Click:
+
+```text
+Collect Browser Information
+```
+
+This collects browser, screen, language, timezone, hardware, touch, network, storage, and browser-capability information.
+
+### Canvas Fingerprint
+
+Click:
+
+```text
+Generate Canvas Fingerprint
+```
+
+This renders text and shapes on a hidden canvas and generates hashes from the rendered output.
+
+### WebGL and GPU Fingerprint
+
+Click:
+
+```text
+Generate WebGL Fingerprint
+```
+
+This collects WebGL capabilities, GPU renderer information, supported extensions, shader precision, and a WebGL rendering hash.
+
+### Audio Fingerprint
+
+Click:
+
+```text
+Generate Audio Fingerprint
+```
+
+This generates and processes an offline audio signal and creates a hash from the rendered audio samples.
+
+It does not use the microphone or play audible sound.
+
+### Font Fingerprint
+
+Click:
+
+```text
+Generate Font Fingerprint
+```
+
+This checks a limited list of common fonts and compares text measurements against fallback fonts.
+
+## Running the Application
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Open the application:
+
+```text
+http://localhost:5000
+```
+
+Run each test using its individual button.
+
+The generated result will appear below the selected test.
+
+The complete backend result will also be printed in the server terminal.
+
+## Privacy Notice
+
+This project is created for learning and testing browser APIs.
+
+The project does not request:
+
+- Camera access
+- Microphone access
+- Location permission
+- File access
+
+Browser information is collected using JavaScript in the browser.
+
+The collected information and generated hashes are then sent to the Express backend for validation and console logging.
+
+The project does not currently store the results in a database.
 
 Each fingerprint is sent to a separate Express endpoint.
 
@@ -318,12 +427,6 @@ Open the application:
 
 ```text
 http://localhost:5000
-```
-
-Click:
-
-```text
-Run Complete Browser Analysis
 ```
 
 ## Example Scripts
