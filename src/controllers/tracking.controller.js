@@ -225,7 +225,82 @@ const collectFontFingerprint = (req, res, next) => {
   }
 };
 
+// =====================================================
+// CLIENT IP INFORMATION
+// =====================================================
+
+const getClientIpInformation = (req, res, next) => {
+  try {
+    const forwardedForHeader = req.headers["x-forwarded-for"];
+
+    const forwardedFor = Array.isArray(forwardedForHeader)
+      ? forwardedForHeader.join(", ")
+      : forwardedForHeader || null;
+
+    const forwardedIpList = forwardedFor
+      ? forwardedFor
+          .split(",")
+          .map((ip) => ip.trim())
+          .filter(Boolean)
+      : [];
+
+    const socketAddress = req.socket?.remoteAddress || null;
+
+    const clientIp =
+      req.clientIp || forwardedIpList[0] || req.ip || socketAddress;
+
+    const normalizedIp =
+      typeof clientIp === "string" ? clientIp.replace(/^::ffff:/, "") : null;
+
+    const ipInformation = {
+      ipAddress: normalizedIp,
+
+      expressIp:
+        typeof req.ip === "string" ? req.ip.replace(/^::ffff:/, "") : null,
+
+      forwardedFor,
+
+      forwardedIpList,
+
+      socketAddress:
+        typeof socketAddress === "string"
+          ? socketAddress.replace(/^::ffff:/, "")
+          : null,
+
+      protocol: req.protocol,
+
+      hostname: req.hostname,
+
+      secureConnection: req.secure,
+
+      userAgent: req.get("user-agent") || null,
+
+      receivedAt: new Date().toISOString(),
+    };
+
+    console.log("\n================ CLIENT IP INFORMATION ================");
+
+    console.dir(ipInformation, {
+      depth: null,
+      colors: true,
+    });
+
+    console.log("=======================================================\n");
+
+    return res.status(200).json({
+      success: true,
+
+      message: "Client IP information retrieved successfully.",
+
+      data: ipInformation,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
+  getClientIpInformation,
   collectBrowserProperties,
   collectCanvasFingerprint,
   collectWebglFingerprint,

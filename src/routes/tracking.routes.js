@@ -1,6 +1,7 @@
 const express = require("express");
 
 const {
+  getClientIpInformation,
   collectBrowserProperties,
   collectCanvasFingerprint,
   collectWebglFingerprint,
@@ -9,6 +10,8 @@ const {
 } = require("../controllers/tracking.controller");
 
 const router = express.Router();
+
+router.get("/client-ip", getClientIpInformation);
 
 router.post("/browser-properties", collectBrowserProperties);
 
