@@ -27,6 +27,10 @@ const cleanStringArray = (value) => {
   return value.slice(0, MAX_ARRAY_LENGTH).map(cleanString).filter(Boolean);
 };
 
+// =====================================================
+// BROWSER PROPERTY TRACKING
+// =====================================================
+
 const prepareBrowserTrackingData = ({ requestData, ipAddress, userAgent }) => {
   const screen = requestData?.screen || {};
   const language = requestData?.language || {};
@@ -61,7 +65,6 @@ const prepareBrowserTrackingData = ({ requestData, ipAddress, userAgent }) => {
 
     language: {
       primaryLanguage: cleanString(language.primaryLanguage),
-
       languages: cleanStringArray(language.languages),
     },
 
@@ -94,27 +97,17 @@ const prepareBrowserTrackingData = ({ requestData, ipAddress, userAgent }) => {
 
     capabilities: {
       cookiesEnabled: cleanBoolean(capabilities.cookiesEnabled),
-
       localStorageAvailable: cleanBoolean(capabilities.localStorageAvailable),
-
       sessionStorageAvailable: cleanBoolean(
         capabilities.sessionStorageAvailable,
       ),
-
       indexedDbAvailable: cleanBoolean(capabilities.indexedDbAvailable),
-
       serviceWorkerSupported: cleanBoolean(capabilities.serviceWorkerSupported),
-
       webSocketSupported: cleanBoolean(capabilities.webSocketSupported),
-
       webWorkerSupported: cleanBoolean(capabilities.webWorkerSupported),
-
       pdfViewerEnabled: cleanBoolean(capabilities.pdfViewerEnabled),
-
       online: cleanBoolean(capabilities.online),
-
       doNotTrack: cleanString(capabilities.doNotTrack),
-
       globalPrivacyControl: cleanBoolean(capabilities.globalPrivacyControl),
     },
 
@@ -131,6 +124,71 @@ const prepareBrowserTrackingData = ({ requestData, ipAddress, userAgent }) => {
   };
 };
 
+// =====================================================
+// CANVAS FINGERPRINT TRACKING
+// =====================================================
+
+const SHA256_PATTERN = /^[a-f0-9]{64}$/i;
+
+const cleanSha256Hash = (value) => {
+  const cleanedValue = cleanString(value);
+
+  if (!cleanedValue || !SHA256_PATTERN.test(cleanedValue)) {
+    return null;
+  }
+
+  return cleanedValue.toLowerCase();
+};
+
+const prepareCanvasTrackingData = ({ requestData, ipAddress, userAgent }) => {
+  const canvas = requestData?.canvas || {};
+  const rendering = requestData?.rendering || {};
+
+  const canvasHash = cleanSha256Hash(requestData?.canvasHash);
+
+  const pixelSampleHash = cleanSha256Hash(requestData?.pixelSampleHash);
+
+  if (!canvasHash) {
+    const error = new Error("A valid canvas SHA-256 hash is required.");
+
+    error.statusCode = 400;
+
+    throw error;
+  }
+
+  return {
+    trackingType: "CANVAS_FINGERPRINT",
+
+    request: {
+      ipAddress: cleanString(ipAddress),
+      userAgent: cleanString(userAgent),
+    },
+
+    fingerprint: {
+      canvasHash,
+      pixelSampleHash,
+    },
+
+    canvas: {
+      width: cleanNumber(canvas.width),
+      height: cleanNumber(canvas.height),
+      dataUrlLength: cleanNumber(canvas.dataUrlLength),
+    },
+
+    rendering: {
+      textBaseline: cleanString(rendering.textBaseline),
+      direction: cleanString(rendering.direction),
+      imageSmoothingEnabled: cleanBoolean(rendering.imageSmoothingEnabled),
+      globalCompositeOperation: cleanString(rendering.globalCompositeOperation),
+    },
+
+    clientCollectedAt: cleanString(requestData?.collectedAt),
+
+    serverReceivedAt: new Date().toISOString(),
+  };
+};
+
 module.exports = {
   prepareBrowserTrackingData,
+  prepareCanvasTrackingData,
 };

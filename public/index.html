@@ -5,19 +5,32 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Browser Information Test</title>
+    <title>Browser Tracking Test</title>
 
     <style>
       body {
         font-family: Arial, sans-serif;
-        max-width: 800px;
+        max-width: 900px;
         margin: 40px auto;
         padding: 20px;
       }
 
+      section {
+        margin-bottom: 30px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+      }
+
       button {
         padding: 12px 20px;
+        margin-right: 10px;
         cursor: pointer;
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
       }
 
       pre {
@@ -25,24 +38,47 @@
         background: #f3f3f3;
         overflow: auto;
         white-space: pre-wrap;
+        border-radius: 6px;
+      }
+
+      .notice {
+        padding: 12px;
+        background: #fff7d6;
+        border-left: 4px solid #d6a800;
       }
     </style>
   </head>
 
   <body>
-    <h1>Browser Information Test</h1>
+    <h1>Browser Tracking Test</h1>
 
-    <p>
-      This page collects browser and device characteristics for security and
-      device-recognition testing.
-    </p>
+    <div class="notice">
+      This page collects browser characteristics for security and
+      device-recognition testing. Canvas fingerprinting should only be used
+      after informing the user.
+    </div>
 
-    <button id="collectButton" type="button">
-      Collect Browser Information
-    </button>
+    <section>
+      <h2>Browser Properties</h2>
 
-    <pre id="result">No information collected yet.</pre>
+      <button id="collectButton" type="button">
+        Collect Browser Information
+      </button>
+
+      <pre id="result">No browser information collected yet.</pre>
+    </section>
+
+    <section>
+      <h2>Canvas Fingerprint</h2>
+
+      <button id="canvasButton" type="button">
+        Generate Canvas Fingerprint
+      </button>
+
+      <pre id="canvasResult">No canvas fingerprint generated yet.</pre>
+    </section>
 
     <script src="/js/browserCollector.js"></script>
+    <script src="/js/canvasCollector.js"></script>
   </body>
 </html>
