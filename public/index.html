@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Browser Information Test</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 20px;
+      }
+
+      button {
+        padding: 12px 20px;
+        cursor: pointer;
+      }
+
+      pre {
+        padding: 15px;
+        background: #f3f3f3;
+        overflow: auto;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Browser Information Test</h1>
+
+    <p>
+      This page collects browser and device characteristics for security and
+      device-recognition testing.
+    </p>
+
+    <button id="collectButton" type="button">
+      Collect Browser Information
+    </button>
+
+    <pre id="result">No information collected yet.</pre>
+
+    <script src="/js/browserCollector.js"></script>
+  </body>
+</html>

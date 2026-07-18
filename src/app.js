@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
+const path = require("path");
 
 const environment = require("./config/environment");
 
@@ -13,11 +14,9 @@ const routeNotFoundMiddleware = require("./middleware/routeNotFound.middleware")
 
 const errorHandlerMiddleware = require("./middleware/errorHandler.middleware");
 
-const app = express();
+const trackingRoutes = require("./routes/tracking.routes");
 
-// =====================================================
-// PROXY CONFIGURATION
-// =====================================================
+const app = express();
 
 if (environment.trustProxy) {
   app.set("trust proxy", 1);
@@ -36,12 +35,12 @@ app.use(
   }),
 );
 
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "100kb" }));
 
 app.use(
   express.urlencoded({
     extended: true,
-    limit: "1mb",
+    limit: "100kb",
   }),
 );
 
@@ -49,27 +48,15 @@ if (environment.nodeEnv !== "production") {
   app.use(morgan("dev"));
 }
 
-// =====================================================
-// TRACKING MIDDLEWARE
-// =====================================================
-
+// Existing tracking middleware
 app.use(ipTrackingMiddleware);
 app.use(requestHeadersMiddleware);
 
-// =====================================================
-// TEST ENDPOINTS
-// =====================================================
+// Serve the frontend collector page
+app.use(express.static(path.join(__dirname, "../public")));
 
-app.get("/", (req, res) => {
-  return res.status(200).json({
-    success: true,
-    message: "Backend API is running.",
-    tracking: {
-      ipAddress: req.clientIp || null,
-      browserInformation: req.browserInformation || null,
-    },
-  });
-});
+// Tracking API
+app.use("/api/v1/tracking", trackingRoutes);
 
 app.get("/api/health", (req, res) => {
   return res.status(200).json({
