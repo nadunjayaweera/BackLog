@@ -3,6 +3,7 @@ const {
   prepareCanvasTrackingData,
   prepareWebglTrackingData,
   prepareAudioTrackingData,
+  prepareFontTrackingData,
 } = require("../services/tracking.service");
 
 // =====================================================
@@ -176,9 +177,58 @@ const collectAudioFingerprint = (req, res, next) => {
   }
 };
 
+// =====================================================
+// FONT FINGERPRINT
+// =====================================================
+
+const collectFontFingerprint = (req, res, next) => {
+  try {
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid font fingerprint data is required.",
+      });
+    }
+
+    const trackingData = prepareFontTrackingData({
+      requestData: req.body,
+
+      ipAddress: req.clientIp || req.ip || req.socket?.remoteAddress,
+
+      userAgent: req.get("user-agent"),
+    });
+
+    console.log("\n================ FONT FINGERPRINT ================");
+
+    console.dir(trackingData, {
+      depth: null,
+      colors: true,
+    });
+
+    console.log("==================================================\n");
+
+    return res.status(200).json({
+      success: true,
+
+      message: "Font fingerprint received successfully.",
+
+      fingerprint: trackingData.fingerprint.fingerprintHash,
+
+      detectedFontsHash: trackingData.fingerprint.detectedFontsHash,
+
+      detectedFontCount: trackingData.summary.detectedFontCount,
+
+      receivedAt: trackingData.serverReceivedAt,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   collectBrowserProperties,
   collectCanvasFingerprint,
   collectWebglFingerprint,
   collectAudioFingerprint,
+  collectFontFingerprint,
 };

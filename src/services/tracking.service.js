@@ -545,9 +545,169 @@ const prepareAudioTrackingData = ({ requestData, ipAddress, userAgent }) => {
   };
 };
 
+// =====================================================
+// FONT FINGERPRINT HELPERS
+// =====================================================
+
+const cleanPlainObject = (value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  return value;
+};
+
+const cleanFontMeasurement = (value) => {
+  const measurement = cleanPlainObject(value);
+
+  return {
+    width: cleanNumber(measurement.width),
+
+    actualBoundingBoxLeft: cleanNumber(measurement.actualBoundingBoxLeft),
+
+    actualBoundingBoxRight: cleanNumber(measurement.actualBoundingBoxRight),
+
+    actualBoundingBoxAscent: cleanNumber(measurement.actualBoundingBoxAscent),
+
+    actualBoundingBoxDescent: cleanNumber(measurement.actualBoundingBoxDescent),
+
+    fontBoundingBoxAscent: cleanNumber(measurement.fontBoundingBoxAscent),
+
+    fontBoundingBoxDescent: cleanNumber(measurement.fontBoundingBoxDescent),
+  };
+};
+
+const cleanFallbackMeasurement = (value) => {
+  const fallback = cleanPlainObject(value);
+
+  return {
+    differsFromFallback: cleanBoolean(fallback.differsFromFallback),
+
+    measurement: cleanFontMeasurement(fallback.measurement),
+  };
+};
+
+const cleanTestedFont = (value) => {
+  const font = cleanPlainObject(value);
+  const measurements = cleanPlainObject(font.measurements);
+
+  return {
+    name: cleanString(font.name),
+
+    detected: cleanBoolean(font.detected),
+
+    fontFaceSetCheck: cleanBoolean(font.fontFaceSetCheck),
+
+    measurementDetected: cleanBoolean(font.measurementDetected),
+
+    measurements: {
+      monospace: cleanFallbackMeasurement(measurements.monospace),
+
+      "sans-serif": cleanFallbackMeasurement(measurements["sans-serif"]),
+
+      serif: cleanFallbackMeasurement(measurements.serif),
+    },
+  };
+};
+
+// =====================================================
+// FONT FINGERPRINT TRACKING
+// =====================================================
+
+const prepareFontTrackingData = ({ requestData, ipAddress, userAgent }) => {
+  const fingerprintHash = cleanSha256Hash(requestData?.fingerprintHash);
+
+  const detectedFontsHash = cleanSha256Hash(requestData?.detectedFontsHash);
+
+  if (!fingerprintHash || !detectedFontsHash) {
+    const error = new Error("Valid font fingerprint hashes are required.");
+
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const detectedFonts = Array.isArray(requestData?.detectedFonts)
+    ? requestData.detectedFonts
+        .slice(0, 50)
+        .map(cleanString)
+        .filter(Boolean)
+        .sort()
+    : [];
+
+  const testedFonts = Array.isArray(requestData?.testedFonts)
+    ? requestData.testedFonts
+        .slice(0, 50)
+        .map(cleanTestedFont)
+        .filter((font) => Boolean(font.name))
+    : [];
+
+  const fontFaceSet = cleanPlainObject(requestData?.fontFaceSet);
+
+  const configuration = cleanPlainObject(requestData?.configuration);
+
+  const baselineMeasurements = cleanPlainObject(
+    requestData?.baselineMeasurements,
+  );
+
+  return {
+    trackingType: "FONT_FINGERPRINT",
+
+    request: {
+      ipAddress: cleanString(ipAddress),
+      userAgent: cleanString(userAgent),
+    },
+
+    fingerprint: {
+      fingerprintHash,
+      detectedFontsHash,
+    },
+
+    summary: {
+      detectedFontCount: cleanNumber(requestData?.detectedFontCount),
+
+      testedFontCount: cleanNumber(requestData?.testedFontCount),
+
+      detectedFonts,
+    },
+
+    fontFaceSet: {
+      supported: cleanBoolean(fontFaceSet.supported),
+
+      checkSupported: cleanBoolean(fontFaceSet.checkSupported),
+
+      status: cleanString(fontFaceSet.status),
+    },
+
+    configuration: {
+      fontSize: cleanString(configuration.fontSize),
+
+      testTextLength: cleanNumber(configuration.testTextLength),
+
+      baseFonts: Array.isArray(configuration.baseFonts)
+        ? configuration.baseFonts.slice(0, 10).map(cleanString).filter(Boolean)
+        : [],
+    },
+
+    baselineMeasurements: {
+      monospace: cleanFontMeasurement(baselineMeasurements.monospace),
+
+      "sans-serif": cleanFontMeasurement(baselineMeasurements["sans-serif"]),
+
+      serif: cleanFontMeasurement(baselineMeasurements.serif),
+    },
+
+    testedFonts,
+
+    clientCollectedAt: cleanString(requestData?.collectedAt),
+
+    serverReceivedAt: new Date().toISOString(),
+  };
+};
+
 module.exports = {
   prepareBrowserTrackingData,
   prepareCanvasTrackingData,
   prepareWebglTrackingData,
   prepareAudioTrackingData,
+  prepareFontTrackingData,
 };
